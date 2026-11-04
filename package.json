@@ -1,0 +1,107 @@
+{
+  "name": "dsh-purge-x",
+  "version": "2.0.1",
+  "description": "dsh-purge-x：dsh-purge 的二开增强版，面向 dsh 0.2.1-rc.5 的破甲插件，新增宿主版本探测、补丁锚点审计、兼容门控与 dry-run。Fork of YuJunZhiXue/dsh-purge (MIT).",
+  "type": "module",
+  "private": true,
+  "main": "lib/index.js",
+  "exports": {
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./client": "./client.js",
+    "./compat": "./lib/compat.js",
+    "./host-version": "./lib/host-version.js",
+    "./redteam": "./lib/redteam/index.js",
+    "./redteam/store": "./lib/redteam/store.js",
+    "./redteam/ui": "./lib/redteam/ui.js",
+    "./redteam/tools": "./lib/redteam/tools.js",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "dsh-purge": "bin/dsh-purge.js",
+    "dsh-purge-x": "bin/dsh-purge.js"
+  },
+  "files": [
+    "lib",
+    "!lib/default-prompt-inject.md",
+    "bin",
+    "docs",
+    "presets",
+    "skills",
+    "scripts",
+    "test",
+    "client.js",
+    "cordis.patch.yml",
+    "screenshots.json",
+    "FORK.md",
+    "README.md",
+    "README.zh-CN.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "embed-prompt": "node scripts/embed-default-prompt.mjs",
+    "build:client": "node scripts/build-client.mjs",
+    "test": "node --test test/*.test.mjs",
+    "check": "node --check lib/index.js && node --check lib/core.js && node --check lib/compat.js && node --check lib/host-version.js && node --check bin/dsh-purge.js"
+  },
+  "license": "MIT",
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "dsh-plugins",
+    "网络安全",
+    "红队评测",
+    "llm-security",
+    "harness-security",
+    "deepseek-harness",
+    "red-team",
+    "instructions",
+    "rules",
+    "prompt-eval",
+    "agent",
+    "compat"
+  ],
+  "upstream": {
+    "name": "dsh-purge",
+    "author": "YuJunZhiXue",
+    "repository": "https://github.com/YuJunZhiXue/dsh-purge",
+    "license": "MIT",
+    "baseVersion": "1.1.71"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-connection",
+        "@deepseek-ai/dsh-client-runtime",
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-slots",
+        "@deepseek-ai/dsh-client-ui-settings"
+      ]
+    },
+    "compat": {
+      "host": ">=0.2.0-0 <0.2.2-0",
+      "tested": [
+        "0.2.0-rc.2",
+        "0.2.1-rc.5"
+      ],
+      "latest": "0.2.1-rc.5"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": ">=4.0.4 <5.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dshTarget": "0.2.1-rc.5",
+  "fork": {
+    "name": "dsh-purge-x",
+    "directory": "dsh/dsh-purge-x",
+    "baseVersion": "1.1.71"
+  }
+}
