@@ -1,3 +1,16 @@
+# 2.0.2（二开版 / dsh-purge-x）
+
+## 中文
+
+- **适配 dsh 0.2.2-rc.2**（`E:\AI\dsh` 实机对照）：`HOST_RANGE_DEFAULT` 放宽到 `>=0.2.0-0 <0.2.3-0`，`TESTED_HOSTS` 增加 `0.2.2-rc.2`。
+- 修复发现层三处区域门控 bug：① `findDesktopAppExecutable()` 默认路径补查卸载注册表，自定义安装盘（如 `E:\AI\dsh`）不再「找不到宿主」；② `officialShellMain()` 与 ③ `keepSurfaceFile()` 改按 `_patchTargetAiBase` 所在安装树判定区域，桌面壳 `main.js`（#45/#46/#83/#84/#82）与 `@earendil-works/pi-ai`（#47/#49/#57/#60）不再被 CLI 进程的 web surface 误报「文件缺失」。
+- 0.2.2 锚点适配（新增 pattern，旧 pattern 保留兼容 0.2.0/0.2.1）：#12（ASK_SENTENCE 句式换 "Approval prompts are enabled…"）、#13/#35（`Error` → `SandboxEscalationError` + 错误码 + `throwIfAborted` 前置行）、#14（`displayReason` 换 `escalationDisplayReason(...)`）、#18（post-execute 去掉 block 分支）、#40（assemble 两个 return 带 `tools`，新增 `COMPLETE_PROMPT_WATERFALL_INJECT_022`）、#74（claim 与 assemble 之间插入 selection/toolSet，改锚 claim+selection 两行）、#67（缩进 4→5 层 tab）、#62（ask 分派挪进 `dsh-tools/lib/pipeline.js`，`targetFiles` 新增 `dsh-tools-pipeline` 键，补 `approvalDenial` 形态与 `exec.agent === void 0` 分支）、#82（`main.js` import 后插了 mime region，新锚 import+mime 头）。
+- 目标文件重定位：`dsh-tools-ptc` 补 `dsh-tool-executor-ptc/lib/types/ptc.js`（0.2.2 起 run_code schema 在这里，#60 因此恢复命中）；`deliverables-prompt` 补 `dsh-deliverable-file-references/lib/index.js`（0.2.2 起 "Do not call present…" 教学句在这个新包，#54 恢复命中）。
+- 版本收窄两条补丁：#50 `SESSION_REFERENCE_FRAMING_NEUTRAL`（0.2.2 上游自己把跨会话引用写成 untrusted 表述）与 #56 `REWIND_HIDE_CUT_ONLY`（0.2.2 重写会话投影，`surfaceOp` replace 由 assembler 折叠，客户端不再有 `rewindVisibleEntries`）→ `hostRange: ">=0.2.0-0 <0.2.2-0"`，0.2.2 上跳过。
+- 0.2.2 实测（desktop 面）：82 条补丁 待应用 66 / 已应用 5 / 锚点缺失 2（#21/#80 撤销型，正常）/ 文件缺失 7（可选包未装）/ 宿主不支持 2，**阻断项 0**；dry-run 66 补丁 / 89 文件 / +7972 字节；全量内存模拟 apply 后 28 个 JS 全过 `node --check`；`npm test` 38 pass / 1 skip。
+
+---
+
 # 2.0.1（二开版 / dsh-purge-x）
 
 ## 中文

@@ -13,7 +13,7 @@ import {
 } from "../lib/compat.js";
 
 test("patchHostRange defaults to the verified 0.2 host line", () => {
-  assert.equal(patchHostRange({ id: 1 }), ">=0.2.0-0 <0.2.2-0");
+  assert.equal(patchHostRange({ id: 1 }), ">=0.2.0-0 <0.2.3-0");
   assert.equal(patchHostRange({ id: 1, hostRange: ">=0.1.0" }), ">=0.1.0");
   assert.equal(patchHostRange({ id: 1, legacy: { maxHost: "0.2.0" } }), ">=0.0.0 <=0.2.0");
 });

@@ -1,6 +1,6 @@
-> **二开版本（dsh-purge-x，2.0.1）**
+> **二开版本（dsh-purge-x，2.0.2）**
 > 本目录基于 [YuJunZhiXue/dsh-purge](https://github.com/YuJunZhiXue/dsh-purge) **v1.1.71** 修改，
-> 适配 **dsh 0.2.1-rc.5**。新增宿主版本探测、补丁锚点审计（`/purge compat`）、
+> 适配 **dsh 0.2.1-rc.5 / 0.2.2-rc.2**。新增宿主版本探测、补丁锚点审计（`/purge compat`）、
 > dry-run（`/purge plan`）与可选兼容门控。安装方式与兼容矩阵见 **[FORK.md](FORK.md)**。
 > 包名是 **`dsh-purge-x`**（CLI：`dsh-purge-x`，兼容别名 `dsh-purge`），从本目录本地安装，不发 npm；
 > 下文 npm 命令装的是**上游** `dsh-purge`。
@@ -14,7 +14,7 @@
 
 <h1 align="center">⚔️ DeepSeek Harness 网络安全红队工具（dsh-purge-x · 二开自 dsh-purge）</h1>
 
-<p align="center"><strong>Version 2.0.1（基于上游 1.1.71）</strong></p>
+<p align="center"><strong>Version 2.0.2（基于上游 1.1.71）</strong></p>
 
 <p align="center">
   <em>DeepSeek Harness 破甲：让所有模型都能破甲，不同模型可换不同提示词；默认提示词面向国模「小码酱」。Jailbreak for every model — swap prompts per model. 求 Star 收藏 ⭐ 如要二开，请查看署名要求部分</em>

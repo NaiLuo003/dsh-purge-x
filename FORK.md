@@ -26,10 +26,58 @@
 
 ### 2.2 宿主版本门控
 
-- 每条补丁默认落在 `>=0.2.0-0 <0.2.2-0`；补丁可用 `hostRange` 或 `legacy.maxHost` 单独声明。
+- 每条补丁默认落在 `>=0.2.0-0 <0.2.3-0`；补丁可用 `hostRange` 或 `legacy.maxHost` 单独声明。
 - `applyPatches` / `patchStatus` 进入时探测宿主版本；不在区间的补丁直接跳过，不会把旧锚点硬打到新宿主。
-- 0.2.2 alpha 与 0.3.x 未校对，默认跳过；需要时给补丁加 `hostRange` 再放开。
+- 0.3.x 未校对，默认跳过；需要时给补丁加 `hostRange` 再放开。
 - 0.1.x 宿主不再默认启用 0.2 补丁链；需要时给补丁加 `hostRange: ">=0.1.0-0 <0.2.0"`。
+
+### 2.3 0.2.1-rc.5 适配
+
+| 补丁 | 变化 |
+| --- | --- |
+| #32 `WEB_SURFACE_IDENTITY_NEUTRAL` | 0.2.1 把 Web 身份句从 `dsh-web-app` 挪到新包 `dsh-harness-dev-context`。目标文件增加 `dev-context`，并补 3 条新锚点 |
+| #53 `WEB_SURFACE_PROHIBITION` | 同上；新增 `dev-context` 的整段身份句替换（同时兼容 #32 先跑后的写法） |
+| #40 `COMPLETE_PROMPT_KEEP_INJECT` | 0.2.1 的 `system-prompt` assemble 尾部新增 `requiredContexts`，旧正则失配。新增 0.2.1 专用 pattern，保留 required-context 过滤语义 |
+| #101 `DEV_CONTEXT_HARNESS_IDENTITY`（新增） | 去掉 `dsh-harness-dev-context` 里 "DeepSeek Harness implementation checkout"、"Current DeepSeek Harness Web GUI URL" 等产品自称；只改措辞，不动段落结构 |
+
+### 2.3b 0.2.2-rc.2 适配（v2.0.2）
+
+宿主升到 **dsh 0.2.2-rc.2**（`E:\AI\dsh`，desktop-runtime.json `release.version`）后逐锚点比对，改动如下：
+
+**发现层修复（不修这些，补丁再准也找不到宿主）**
+
+| 位置 | 问题 → 修法 |
+| --- | --- |
+| `lib/desktop.js` `findDesktopAppExecutable()` | 自定义安装盘（如 `E:\AI\dsh`）只登记在卸载注册表里，默认路径不查注册表 → CLI 状态/审计全报「找不到宿主」。注册表查询本来就带缓存（~0.6s），改为默认兜底走 `registryInstallDirs()` |
+| `lib/core.js` `officialShellMain()` | CLI 进程自身 surface 是 `web`，桌面壳 `main.js` 被区域门控拒掉 → #45/#46/#83/#84 误报「文件缺失」。改为按 `_patchTargetAiBase` 所在安装树判定桌面面 |
+| `lib/core.js` `keepSurfaceFile()` | 同类区域门控 bug：按 CLI 自己的 surface 过滤 `@earendil-works/pi-ai` 等桌面树文件 → #47/#49/#57/#60 误报。改为按 `_patchTargetAiBase` 判定 |
+
+**版本门控**
+
+- `HOST_RANGE_DEFAULT` 从 `<0.2.2-0` 放宽到 `<0.2.3-0`，`TESTED_HOSTS` 增加 `0.2.2-rc.2`。
+
+**补丁锚点 0.2.2 适配（全部经真实安装树逐字比对）**
+
+| 补丁 | 0.2.2 变化 → 处理 |
+| --- | --- |
+| #12 `APPROVAL_ASK_SENTENCE_BYPASS` | 句式改为 "Approval prompts are enabled in this session: …"，入口双引号 / types 单引号 → 各加一条新 pattern，旧 pattern 保留兼容 0.2.0/0.2.1 |
+| #13 `ESCALATION_WIDENING_EXEMPT` | `throw new Error` → `throw new SandboxEscalationError(..., CODE)` → 新增 0.2.2 pattern |
+| #14 `ESCALATION_GRANT_UNCONDITIONAL` | `displayReason` 从内联双语对象换成 `escalationDisplayReason(mode, justification)` 调用 → 新增第三 pattern |
+| #35 `ESCALATION_NEVER_REJECT` | 同 #13 异常类变化，且 `cancelled` 分支多了 `approval.signal?.throwIfAborted()` → 新增 0.2.2 pattern |
+| #18 `REPEAT_TOOL_REMINDER_DISABLED` | post-execute 回调去掉 `downstream.kind === "block"` 分支 → 新增 0.2.2 pattern |
+| #40 `COMPLETE_PROMPT_KEEP_INJECT` | assemble 两个 return 都展开成多行并带 `tools` → 新增 `COMPLETE_PROMPT_WATERFALL_INJECT_022`（注入段保留 + `tools` 透传）与对应 regex pattern |
+| #74 `ASSEMBLE_BEFORE_PRESTEP` | claim 与 assemble 之间插入 model selection / toolSet 解析 → 新增只锚 `claim` + `selection` 两行的 pattern，后续版本再插中间步骤也不会失配 |
+| #67 `AGENT_LOOP_MESSAGES_GUARD` | 外层多包一层 try，缩进 4 → 5 层 tab → 新增 5-tab pattern |
+| #62 `OFFICIAL_TOOL_ASK_FAILOPEN` | ask 分派从 `dsh-tools/lib/index.js` 挪进 `lib/pipeline.js`，deny 换成 `approvalDenial(..., APPROVAL_UNAVAILABLE)` → `targetFiles` 新增 `dsh-tools-pipeline` 键，补 3 条 0.2.2 pattern（含 `exec.agent === void 0` 分支） |
+| #60 `OFFICIAL_RUN_CODE_APPROVAL_NEUTRAL` | run_code schema 从 `dsh-tools/lib/types/ptc.js` 挪进 `dsh-tool-executor-ptc` → `dsh-tools-ptc` 键补该路径；锚点文本本身未变，命中 |
+| #54 `DELIVERABLE_DO_NOT` | "Do not call present…" 教学句挪进新包 `dsh-deliverable-file-references` → `deliverables-prompt` 键补该路径 |
+| #82 `DESKTOP_SHELL_PROFILE_FALLBACK` | `main.js` 的 import 后面插了 mime region → 新增锚 import + mime region 头的 pattern |
+| #50 `SESSION_REFERENCE_FRAMING_NEUTRAL` | 0.2.2 上游自己把跨会话引用改写为 untrusted 表述 → `hostRange: ">=0.2.0-0 <0.2.2-0"` 收窄，0.2.2 跳过 |
+| #56 `REWIND_HIDE_CUT_ONLY` | 0.2.2 重写会话投影：`surfaceOp` replace 由 assembler 的 replacements 表折叠，客户端不再有 `rewindVisibleEntries`/`isRewindMarker` → `hostRange` 收窄到 `<0.2.2-0` |
+
+**0.2.2 实测审计结论（2026-11-13，desktop 面）**：82 条补丁 —— 待应用 66、已应用 5、锚点缺失 2（#21/#80，均为撤销型补丁，全新安装无标记属正常）、文件缺失 7（#76/#71/#28/#30/#31/#64/#65，unrestricted 预设 / 梁神 / hooks 包本机未装）、宿主不支持 2（#50/#56 收窄）、不适用 0，**阻断项 0**。dry-run：66 条补丁 / 89 个文件 / +7972 字节；全量内存模拟 apply 后 28 个 JS 文件全部通过 `node --check`。
+
+
 
 ### 2.3 0.2.1-rc.5 适配
 
@@ -188,25 +236,26 @@ Electron。旧 main.js 里这段逻辑可从 `app.asar/lib/main.js` 直接读到
 
 | 宿主 | 状态 | 验证方式 |
 | --- | --- | --- |
+| dsh **0.2.2-rc.2**（官方桌面，`E:\AI\dsh`） | ✅ 已适配（v2.0.2） | 逐补丁对真实安装树比对锚点；审计阻断项 0；dry-run 66 补丁 / 89 文件 / +7972 字节；全量内存模拟 apply 后 28 个 JS 全过 `node --check` |
 | dsh **0.2.1-rc.5**（官方桌面） | ✅ 已适配 | 从本机 `E:\AI\dsh\resources\app.asar` 解析真实宿主版本；对解包后的 `@deepseek-ai` 副本执行全量应用，49 个文件被改写，全部 JS 通过 `node --check`；审计阻断项 0 |
 | dsh **0.2.0-rc.2** | ✅ 保持兼容 | 从 npm 拉取 38 个 `@deepseek-ai/*@0.2.0-rc.2` 包做对照；审计阻断项 0，dry-run 59 条补丁 |
-| dsh 0.2.2 alpha / 0.3.x / 未识别 | ⚠️ 保守跳过 | 超出默认 `hostRange` 的补丁状态为 `unsupported`，不写入；需要重新校对锚点后再放开 |
+| dsh 0.3.x / 未识别 | ⚠️ 保守跳过 | 超出默认 `hostRange` 的补丁状态为 `unsupported`，不写入；需要重新校对锚点后再放开 |
 | dsh 0.1.x | ❌ 不支持 | 使用上游 1.1.39 及更早版本 |
 
-审计输出示例：
+审计输出示例（0.2.2-rc.2，desktop 面）：
 
 ```text
-宿主版本 0.2.1-rc.5
-补丁 82 条：待应用 0，已应用 61，锚点缺失 2，文件缺失 15，宿主不支持 0，不适用 0
+宿主版本 0.2.2-rc.2
+补丁 82 条：待应用 66，已应用 5，锚点缺失 2，文件缺失 7，宿主不支持 2，不适用 0
 ✓ 没有阻断项。
 ```
 
-> 说明：`锚点缺失 2` 是 #21（迁移专用，只有宿主带着上游标记时才需要）和 #80（可选清理补丁）；`文件缺失` 主要是未安装的可选包（梁神 / hooks / anthropic）以及尚未解包的桌面壳补丁 #45/#46/#83/#84；`部分命中` 均为可选补丁（#36/#50/#62/#86 等，覆盖多包但部分包未装）。这些都不阻断应用。
+> 说明：`锚点缺失 2` 是 #21（迁移专用，只有宿主带着上游标记时才需要）和 #80（可选清理补丁，撤销旧写入）；`文件缺失 7` 是本机未装的可选包（unrestricted 预设 / 梁神 / hooks-claude-code / hooks-codex）；`宿主不支持 2` 是 #50/#56（0.2.2 上游自己实现了对应语义，按版本收窄）。这些都不阻断应用。
 > 0.2.1 下 #4 不再解析已成 presets/*.patch.yml 新形态的内置预设（那是 #43 的目标范围），避免把 #43 写好的形态误报成 anchor-missing。
 
 ## 4. 安装
 
-本目录的包名是 **`dsh-purge-x`**（当前版本 2.0.1），不是上游的 `dsh-purge`。
+本目录的包名是 **`dsh-purge-x`**（当前版本 2.0.2），不是上游的 `dsh-purge`。
 装进 profile 后，宿主里显示的插件名、CLI 主命令、UI 卡片都是 `dsh-purge-x`；
 `dsh-purge` 只作为兼容别名保留（`bin` 里两个名字指向同一个入口）。
 
@@ -269,7 +318,7 @@ dsh-purge-x --uninstall   # 先还原，再从 profile 移除插件
 - 原项目：**dsh-purge — DeepSeek Harness 破甲**，作者 **YuJunZhiXue**
 - 原仓库：<https://github.com/YuJunZhiXue/dsh-purge>
 - 镜像来源：`dsh/dsh-purge-master/`（包含 `MIRROR-NOTICE.md` 的完整镜像快照）
-- 本二开目录：`dsh/dsh-purge-x/`，包名 **`dsh-purge-x`**，版本 **2.0.1**，基线 **1.1.71**
+- 本二开目录：`dsh/dsh-purge-x/`，包名 **`dsh-purge-x`**，版本 **2.0.2**，基线 **1.1.71**
 - 许可证：MIT，`LICENSE` 未改动
 
 借用本项目的名称、思路、代码或提示词，必须保留以上署名与原仓库链接。

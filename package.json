@@ -1,7 +1,7 @@
 {
   "name": "dsh-purge-x",
-  "version": "2.0.1",
-  "description": "dsh-purge-x：dsh-purge 的二开增强版，面向 dsh 0.2.1-rc.5 的破甲插件，新增宿主版本探测、补丁锚点审计、兼容门控与 dry-run。Fork of YuJunZhiXue/dsh-purge (MIT).",
+  "version": "2.0.2",
+  "description": "dsh-purge-x：dsh-purge 的二开增强版，面向 dsh 0.2.1-rc.5 / 0.2.2-rc.2 的破甲插件，新增宿主版本探测、补丁锚点审计、兼容门控与 dry-run。Fork of YuJunZhiXue/dsh-purge (MIT).",
   "type": "module",
   "private": true,
   "main": "lib/index.js",
@@ -84,12 +84,13 @@
       ]
     },
     "compat": {
-      "host": ">=0.2.0-0 <0.2.2-0",
+      "host": ">=0.2.0-0 <0.2.3-0",
       "tested": [
         "0.2.0-rc.2",
-        "0.2.1-rc.5"
+        "0.2.1-rc.5",
+        "0.2.2-rc.2"
       ],
-      "latest": "0.2.1-rc.5"
+      "latest": "0.2.2-rc.2"
     }
   },
   "peerDependencies": {
@@ -98,7 +99,7 @@
   "engines": {
     "node": ">=18"
   },
-  "dshTarget": "0.2.1-rc.5",
+  "dshTarget": "0.2.2-rc.2",
   "fork": {
     "name": "dsh-purge-x",
     "directory": "dsh/dsh-purge-x",

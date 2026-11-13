@@ -32,13 +32,13 @@ test("compareVersions follows semver prerelease ordering", () => {
   assert.equal(compareVersions("0.2.2-alpha.2", "0.2.1"), 1);
 });
 
-test("default host range covers 0.2.0 prereleases and 0.2.1", () => {
+test("default host range covers 0.2.0 prereleases and 0.2.2", () => {
   assert.ok(satisfiesRange("0.2.0-rc.2", HOST_RANGE_DEFAULT));
   assert.ok(satisfiesRange("0.2.1-rc.5", HOST_RANGE_DEFAULT));
-  // 0.2.2 alpha 尚未校对：默认跳过，避免旧锚点误打。
-  assert.equal(satisfiesRange("0.2.2-alpha.2", HOST_RANGE_DEFAULT), false);
-  assert.equal(satisfiesRange("0.1.7", HOST_RANGE_DEFAULT), false);
+  assert.ok(satisfiesRange("0.2.2-rc.2", HOST_RANGE_DEFAULT));
+  // 0.3.x 未校对：默认跳过，避免旧锚点误打。
   assert.equal(satisfiesRange("0.3.0", HOST_RANGE_DEFAULT), false);
+  assert.equal(satisfiesRange("0.1.7", HOST_RANGE_DEFAULT), false);
 });
 
 test("caret and tilde ranges do not leak across minor versions for 0.x", () => {

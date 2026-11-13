@@ -1,6 +1,6 @@
-> **Fork notice (dsh-purge-x, 2.0.1)**
+> **Fork notice (dsh-purge-x, 2.0.2)**
 > This directory is a fork of [YuJunZhiXue/dsh-purge](https://github.com/YuJunZhiXue/dsh-purge) based on **v1.1.71**,
-> retargeted to **dsh 0.2.1-rc.5**. It adds host version detection, a patch anchor audit (`/purge compat`),
+> retargeted to **dsh 0.2.1-rc.5 / 0.2.2-rc.2**. It adds host version detection, a patch anchor audit (`/purge compat`),
 > a dry-run plan (`/purge plan`) and an optional compatibility guard.
 > The package name is **`dsh-purge-x`** (CLI: `dsh-purge-x`, alias `dsh-purge`); it is installed from this
 > directory, not from npm. The npm commands further down install the **upstream** `dsh-purge` package.
@@ -15,7 +15,7 @@
 
 <h1 align="center">⚔️ DeepSeek Harness cybersecurity red-team tool (dsh-purge-x · fork of dsh-purge)</h1>
 
-<p align="center"><strong>Version 2.0.1 (fork of upstream 1.1.71)</strong></p>
+<p align="center"><strong>Version 2.0.2 (fork of upstream 1.1.71)</strong></p>
 
 <p align="center">
   <em>DeepSeek Harness jailbreak: every model, swap prompts per model. Default prompt for 小码酱. Please star ⭐ If you build on this, see Attribution required.</em>
