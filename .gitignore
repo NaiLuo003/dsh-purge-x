@@ -22,6 +22,9 @@ choirboy-prompt/
 _archive/
 频道推广手册/
 
+# 历史版本快照，不进仓库
+.backup/
+
 # 嵌入前的提示词原文
 lib/default-prompt-inject.md
 default-prompt-inject.md
