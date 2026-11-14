@@ -77,6 +77,18 @@
 
 **0.2.2 实测审计结论（2026-11-13，desktop 面）**：82 条补丁 —— 待应用 66、已应用 5、锚点缺失 2（#21/#80，均为撤销型补丁，全新安装无标记属正常）、文件缺失 7（#76/#71/#28/#30/#31/#64/#65，unrestricted 预设 / 梁神 / hooks 包本机未装）、宿主不支持 2（#50/#56 收窄）、不适用 0，**阻断项 0**。dry-run：66 条补丁 / 89 个文件 / +7972 字节；全量内存模拟 apply 后 28 个 JS 文件全部通过 `node --check`。
 
+### 2.3c 官方更新器打回密封包的自愈（v2.0.2 收尾）
+
+2026-11-14 实机复现链：00:56 换包生效 → 01:29 electron-updater（nightly 渠道）在退出时静默执行 `%LOCALAPPDATA%\@deepseek-aidsh-desktop-updater\installer.exe` 重装官方包 → `app.asar` 被装回（mtime 随安装载荷还原）、`app.asar.bak` 被安装器删除、宿主从密封包启动。此时 `resources\app` 的 61 个补丁与 `.dshpurge.bak` 全部完好，但宿主读不到。修复三层：
+
+| 层 | 位置 | 行为 |
+| --- | --- | --- |
+| 清缓存 | `desktop.clearDesktopUpdaterPending()`（新） | 换包前读 `resources/app-update.yml` 的 `updaterCacheDirName`，删 `%LOCALAPPDATA%\<cache>\installer.exe` 与 `pending/`；同版本 nightly 删掉后 updater 不会重下重装。挂在 `restartSealedDesktopIfNeeded()` / `scheduleSealedDesktopRestart()` 两条换包路径上 |
+| 启动自愈 | `lib/index.js` boot settle | 「sealed 但补丁完好」时不再只保戳（旧路径 `boot:host-untouched` 永远不换包），改为清缓存 → bundle guard → 重新换包重启（`boot:resealing-swap`） |
+| helper 加固 | `lib/restart-desktop.js` | killApp 入口落日志、rename 重试进度落日志、rename 失败 copy+unlink 兜底 |
+
+验证：`npm test` 41 pass / 0 fail（新增 `test/updater-pending.test.mjs` 覆盖缓存清理与无 yml 空转）；实机 `clearDesktopUpdaterPending` 清掉了当时已存在的 `installer.exe`。
+
 
 
 ### 2.3 0.2.1-rc.5 适配

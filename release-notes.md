@@ -7,7 +7,11 @@
 - 0.2.2 锚点适配（新增 pattern，旧 pattern 保留兼容 0.2.0/0.2.1）：#12（ASK_SENTENCE 句式换 "Approval prompts are enabled…"）、#13/#35（`Error` → `SandboxEscalationError` + 错误码 + `throwIfAborted` 前置行）、#14（`displayReason` 换 `escalationDisplayReason(...)`）、#18（post-execute 去掉 block 分支）、#40（assemble 两个 return 带 `tools`，新增 `COMPLETE_PROMPT_WATERFALL_INJECT_022`）、#74（claim 与 assemble 之间插入 selection/toolSet，改锚 claim+selection 两行）、#67（缩进 4→5 层 tab）、#62（ask 分派挪进 `dsh-tools/lib/pipeline.js`，`targetFiles` 新增 `dsh-tools-pipeline` 键，补 `approvalDenial` 形态与 `exec.agent === void 0` 分支）、#82（`main.js` import 后插了 mime region，新锚 import+mime 头）。
 - 目标文件重定位：`dsh-tools-ptc` 补 `dsh-tool-executor-ptc/lib/types/ptc.js`（0.2.2 起 run_code schema 在这里，#60 因此恢复命中）；`deliverables-prompt` 补 `dsh-deliverable-file-references/lib/index.js`（0.2.2 起 "Do not call present…" 教学句在这个新包，#54 恢复命中）。
 - 版本收窄两条补丁：#50 `SESSION_REFERENCE_FRAMING_NEUTRAL`（0.2.2 上游自己把跨会话引用写成 untrusted 表述）与 #56 `REWIND_HIDE_CUT_ONLY`（0.2.2 重写会话投影，`surfaceOp` replace 由 assembler 折叠，客户端不再有 `rewindVisibleEntries`）→ `hostRange: ">=0.2.0-0 <0.2.2-0"`，0.2.2 上跳过。
-- 0.2.2 实测（desktop 面）：82 条补丁 待应用 66 / 已应用 5 / 锚点缺失 2（#21/#80 撤销型，正常）/ 文件缺失 7（可选包未装）/ 宿主不支持 2，**阻断项 0**；dry-run 66 补丁 / 89 文件 / +7972 字节；全量内存模拟 apply 后 28 个 JS 全过 `node --check`；`npm test` 38 pass / 1 skip。
+- 0.2.2 实测（desktop 面）：82 条补丁 待应用 66 / 已应用 5 / 锚点缺失 2（#21/#80 撤销型，正常）/ 文件缺失 7（可选包未装）/ 宿主不支持 2，**阻断项 0**；dry-run 66 补丁 / 89 文件 / +7972 字节；全量内存模拟 apply 后 28 个 JS 全过 `node --check`；`npm test` 41 pass / 0 fail。
+- **修复「换包生效后被官方更新器打回密封」**（2026-11-14 实机复现：换包 00:56 生效，01:29 electron-updater 在退出时静默执行缓存里的 `installer.exe` 重装官方包——`app.asar` 被装回、`app.asar.bak` 被删、宿主又从密封包启动，`app.asar.bak` 消失使下次手动恢复都无从下手）。三层修复：
+  - 新增 `desktop.clearDesktopUpdaterPending()`：换包前读 `resources/app-update.yml` 的 `updaterCacheDirName`，清掉 `%LOCALAPPDATA%\<cache>\installer.exe` 与 `pending/` 载荷。同版本 nightly 载荷删掉后 updater 版本校验相同不会重下重装。挂进 `restartSealedDesktopIfNeeded()` 与 `scheduleSealedDesktopRestart()` 两条换包路径。
+  - 启动自愈：boot 时若「sealed 但 `resources/app` 补丁完好」（`hostCleanEnoughToKeep()` 为真 + `desktopAsarStillSealed()`），不再只保戳（旧行为 `boot:host-untouched` 会永远不换包），改为清更新器缓存 + bundle guard + 重新换包重启，返回 `boot:resealing-swap`。官方更新器无论何时打回，下次启动自动换回。
+  - `restart-desktop.js` helper（886c8ba）：killApp 入口落日志、rename 每 20 次重试落错误码、rename 80 次失败后 copy+unlink 兜底。
 
 ---
 
